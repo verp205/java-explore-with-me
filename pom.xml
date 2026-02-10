@@ -83,17 +83,13 @@
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>ru.practicum</groupId>
-			<artifactId>stats-dto</artifactId>
-		</dependency>
 	</dependencies>
 
     <modules>
 		<module>stats-dto</module>
 		<module>stats-client</module>
 		<module>stats-service</module>
-		<module>main-service</module>
+		<!--<module>main-service</module>-->
 	</modules>
 
 	<build>
@@ -217,6 +213,10 @@
 							</goals>
 						</execution>
 					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
 				</plugin>
 			</plugins>
 		</pluginManagement>

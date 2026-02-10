@@ -1,19 +1,8 @@
-FROM maven:3.9.5-eclipse-temurin-21 AS build
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
-COPY pom.xml .
-COPY stats-dto/ stats-dto/
-COPY stats-client/ stats-client/
-COPY stats-service/ stats-service/
-COPY main-service/ main-service/
 
-RUN mvn clean package -DskipTests -pl stats-service -am
-
-FROM eclipse-temurin:21-jdk-jammy
-
-WORKDIR /app
-
-COPY --from=build /app/stats-service/target/*.jar app.jar
+COPY stats-service/target/stats-service-*.jar app.jar
 
 ENTRYPOINT ["java","-jar","app.jar"]
