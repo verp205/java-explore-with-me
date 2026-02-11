@@ -1,22 +1,100 @@
-*.class
-*.log
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-hs_err_pid*
-replay_pid*
-out/
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-
-### IntelliJ IDEA ###
-.idea
-*.iws
+# --------------------------
+# IntelliJ IDEA
+# --------------------------
+.idea/
 *.iml
+*.iws
 *.ipr
+out/
+.idea_modules/
+atlassian-ide-plugin.xml
+
+# --------------------------
+# Системные файлы
+# --------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# --------------------------
+# Логи и базы данных
+# --------------------------
+*.log
+*.sql
+*.sqlite
+*.db
+*.ldb
+
+# --------------------------
+# Компиляция и бинарники
+# --------------------------
+*.class
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.obj
+*.lib
+*.a
+*.ko
+*.out
+*.app
+
+# Java
+target/
+*.war
+*.ear
+*.nar
+!/.mvn/wrapper/maven-wrapper.jar
+
+# --------------------------
+# Архивы и временные файлы
+# --------------------------
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
+*.tmp
+*.temp
+*.cache
+*.pid
+*.seed
+*.pid.lock
+
+# --------------------------
+# Документация
+# --------------------------
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+
+# --------------------------
+# Тесты и покрытие
+# --------------------------
+*.test
+*.spec
+coverage/
+.nyc_output/
+*.lcov
+.happypack
+.robolectric/
+
+# --------------------------
+# Папки сборки
+# --------------------------
+build/
+dist/
+release/
+target/
+bin/
+obj/
