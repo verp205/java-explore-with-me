@@ -1,5 +1,6 @@
 package ru.practicum.statsservice;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -19,9 +20,10 @@ public class StatsController {
 
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)
-    public void saveHit(@RequestBody EndpointHitDto dto) {
+    public void saveHit(@Valid @RequestBody EndpointHitDto dto) {
         statsService.save(dto);
     }
+
 
     @GetMapping("/stats")
     public List<ViewStatsDto> getStats(

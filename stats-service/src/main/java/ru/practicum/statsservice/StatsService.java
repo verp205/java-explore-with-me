@@ -34,22 +34,25 @@ public class StatsService {
         }
 
         if (unique) {
-            stream = stream.collect(Collectors.collectingAndThen(
-                    Collectors.toMap(
-                            h -> h.getApp() + ":" + h.getUri() + ":" + h.getIp(),
-                            h -> h,
-                            (h1, h2) -> h1
-                    ),
-                    m -> m.values().stream()
-            ));
+            stream = stream.collect(Collectors.toMap(
+                    h -> h.getApp() + h.getUri() + h.getIp(),
+                    h -> h,
+                    (h1, h2) -> h1
+            )).values().stream();
         }
 
-        return stream.collect(Collectors.groupingBy(h -> h.getApp() + "|" + h.getUri(), Collectors.counting()))
-                .entrySet().stream()
+        return stream
+                .collect(Collectors.groupingBy(
+                        h -> h.getApp() + "|" + h.getUri(),
+                        Collectors.counting()
+                ))
+                .entrySet()
+                .stream()
                 .map(e -> {
                     String[] parts = e.getKey().split("\\|");
                     return new ViewStatsDto(parts[0], parts[1], e.getValue());
                 })
+                .sorted((a, b) -> Long.compare(b.getHits(), a.getHits()))
                 .collect(Collectors.toList());
     }
 }

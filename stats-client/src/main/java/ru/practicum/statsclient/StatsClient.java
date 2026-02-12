@@ -19,7 +19,6 @@ public class StatsClient {
     }
 
     public List<ViewStatsDto> getStats(String start, String end, List<String> uris, boolean unique) {
-        // Пример запроса с параметрами (можно потом улучшить через UriComponentsBuilder)
         return List.of();
     }
 }
