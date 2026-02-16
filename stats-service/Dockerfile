@@ -1,8 +1,7 @@
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
 
+COPY target/*.jar app.jar
 
-COPY stats-service/target/stats-service-*.jar app.jar
-
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
