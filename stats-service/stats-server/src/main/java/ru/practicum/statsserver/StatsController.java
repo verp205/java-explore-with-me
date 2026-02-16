@@ -24,7 +24,6 @@ public class StatsController {
         statsService.save(dto);
     }
 
-
     @GetMapping("/stats")
     public List<ViewStatsDto> getStats(
             @RequestParam
