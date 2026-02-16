@@ -1,28 +1,42 @@
 services:
-  db:
+  postgres:
     image: postgres:15
-    container_name: stats-db
+    container_name: postgres
     environment:
+      POSTGRES_DB: stats
       POSTGRES_USER: stats
       POSTGRES_PASSWORD: stats
-      POSTGRES_DB: stats
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   stats-service:
+    build:
+      context: ./stats-service
+      dockerfile: Dockerfile
     container_name: stats-service
-    build: ./stats-service
     ports:
       - "9090:9090"
-    depends_on:
-      - db
-    restart: always
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/stats
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/stats
       SPRING_DATASOURCE_USERNAME: stats
       SPRING_DATASOURCE_PASSWORD: stats
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - postgres
+
+  main-service:
+    build:
+      context: ./main-service
+      dockerfile: Dockerfile
+    container_name: main-service
+    ports:
+      - "8080:8080"
+    environment:
+      STATS_SERVER_URL: http://stats-service:9090
+    depends_on:
+      - stats-service
 
 volumes:
   postgres_data:
