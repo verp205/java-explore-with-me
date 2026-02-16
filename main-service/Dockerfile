@@ -2,18 +2,18 @@ FROM maven:3.9.12-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
-COPY pom.xml ./
+COPY . .
+
 RUN mvn install -N
 
-COPY . .
 RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:21-jdk-jammy
-
 WORKDIR /app
 
-COPY --from=build /app/target/main-service-0.0.1-SNAPSHOT.jar app.jar
+ARG SERVICE
+COPY --from=build /app/${SERVICE}/target/${SERVICE}-0.0.1-SNAPSHOT.jar ./${SERVICE}.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "${SERVICE}.jar"]
