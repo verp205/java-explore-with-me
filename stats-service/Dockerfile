@@ -2,7 +2,7 @@ FROM maven:3.9.12-eclipse-temurin-21 AS build
 WORKDIR /app
 
 COPY . .
-
+RUN mvn install -N -f pom.xml
 RUN mvn clean package -pl server -am -DskipTests
 
 FROM eclipse-temurin:21-jdk-jammy
