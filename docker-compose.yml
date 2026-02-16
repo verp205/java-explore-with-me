@@ -1,32 +1,32 @@
 services:
-  postgres:
+  stats-db:
     image: postgres:15
-    container_name: postgres
+    container_name: stats-db
     environment:
       POSTGRES_DB: stats
       POSTGRES_USER: stats
       POSTGRES_PASSWORD: stats
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U stats" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   stats-service:
     build:
-      context: ./stats-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: stats-service/Dockerfile
     container_name: stats-service
-    ports:
-      - "9090:9090"
+    depends_on:
+      stats-db:
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/stats
+      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/stats
       SPRING_DATASOURCE_USERNAME: stats
       SPRING_DATASOURCE_PASSWORD: stats
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
-      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
-    depends_on:
-      - postgres
-
-volumes:
-  postgres_data:
+      SERVER_PORT: 9090
+    ports:
+      - "9090:9090"
