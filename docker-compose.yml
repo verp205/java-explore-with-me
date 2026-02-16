@@ -23,20 +23,10 @@ services:
       SPRING_DATASOURCE_USERNAME: stats
       SPRING_DATASOURCE_PASSWORD: stats
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
     depends_on:
       - postgres
-
-  main-service:
-    build:
-      context: ./main-service
-      dockerfile: Dockerfile
-    container_name: main-service
-    ports:
-      - "8080:8080"
-    environment:
-      STATS_SERVER_URL: http://stats-service:9090
-    depends_on:
-      - stats-service
 
 volumes:
   postgres_data:
