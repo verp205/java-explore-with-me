@@ -19,8 +19,19 @@ public class StatsServer {
         repository.save(hit);
     }
 
-    public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
-        List<Object[]> rows = repository.findStats(start, end, uris, unique);
+    public List<ViewStatsDto> getStats(
+            LocalDateTime start,
+            LocalDateTime end,
+            List<String> uris,
+            boolean unique
+    ) {
+        List<Object[]> rows;
+
+        if (uris == null || uris.isEmpty()) {
+            rows = repository.findStatsAll(start, end);
+        } else {
+            rows = repository.findStatsByUris(start, end, uris, unique);
+        }
 
         return rows.stream()
                 .map(r -> new ViewStatsDto(
