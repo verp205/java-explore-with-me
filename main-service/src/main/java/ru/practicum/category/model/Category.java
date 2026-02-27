@@ -19,16 +19,4 @@ public class Category {
 
     @Column(nullable = false)
     private String name;
-
-    @Override
-    public boolean equals(Object object) {
-        if (object == null || getClass() != object.getClass()) return false;
-        Category category = (Category) object;
-        return id != 0 && id.equals(category.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
-    }
 }

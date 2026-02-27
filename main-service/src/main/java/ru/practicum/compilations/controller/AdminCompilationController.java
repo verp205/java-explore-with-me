@@ -15,7 +15,7 @@ import ru.practicum.compilations.service.CompilationService;
 @RequestMapping(path = "/admin/compilations")
 @RequiredArgsConstructor
 public class AdminCompilationController {
-    private static final String PATH = "comp-id";
+    private static final String PATH = "compId";
     private final CompilationService compilationService;
 
     @PostMapping()
@@ -26,7 +26,7 @@ public class AdminCompilationController {
                 .body(compilationService.add(newCompilationDto));
     }
 
-    @PatchMapping("/{comp-id}")
+    @PatchMapping("/{compId}")
     public ResponseEntity<CompilationDto> update(
             @PathVariable(PATH) @Positive long compId,
             @RequestBody @Valid UpdateCompilationRequest updateCompilationDto) {
@@ -35,7 +35,7 @@ public class AdminCompilationController {
                 .body(compilationService.update(compId, updateCompilationDto));
     }
 
-    @DeleteMapping("/{comp-id}")
+    @DeleteMapping("/{compId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> delete(
             @PathVariable(PATH) @Positive long compId) {

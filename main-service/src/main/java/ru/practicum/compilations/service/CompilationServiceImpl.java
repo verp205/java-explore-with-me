@@ -120,21 +120,8 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     private CompilationDto buildCompilationDto(Compilation compilation) {
-        List<Event> events = new ArrayList<>(compilation.getEvents());
-
-        if (events.isEmpty()) {
-            return compilationMapper.toCompilationDto(compilation, Collections.emptyList());
-        }
-
-        Map<Long, Long> viewsMap = getEventsViews(events);
-        Map<Long, Long> confirmedRequestsMap = getConfirmedRequests(events);
-
-        List<EventShortDto> eventShortDtos = events.stream()
-                .map(event -> {
-                    Long views = viewsMap.getOrDefault(event.getId(), 0L);
-                    Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
-                    return eventMapper.toEventShortDto(event, views, confirmedRequests);
-                })
+        List<EventShortDto> eventShortDtos = compilation.getEvents().stream()
+                .map(eventMapper::toEventShortDto)
                 .collect(Collectors.toList());
 
         return compilationMapper.toCompilationDto(compilation, eventShortDtos);

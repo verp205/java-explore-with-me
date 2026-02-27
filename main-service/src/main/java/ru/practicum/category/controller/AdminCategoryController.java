@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.category.service.CategoryService;
 import ru.practicum.category.dto.NewCategoryRequest;
 import ru.practicum.category.dto.CategoryDto;
-import ru.practicum.category.dto.UpdateCategoryDto;
 
 @Validated
 @RestController
@@ -19,11 +18,10 @@ public class AdminCategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
-    public ResponseEntity<CategoryDto> postCategory(
-            @Valid @RequestBody NewCategoryRequest newCategoryRequest) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public CategoryDto postCategory(@Valid @RequestBody NewCategoryRequest newCategoryRequest) {
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(categoryService.postCategory(newCategoryRequest));
+        return categoryService.postCategory(newCategoryRequest);
     }
 
     @DeleteMapping("/{catId}")
@@ -39,9 +37,9 @@ public class AdminCategoryController {
     @PatchMapping("/{catId}")
     public ResponseEntity<CategoryDto> patchCategory(
             @PathVariable("catId") Long catId,
-            @Valid @RequestBody UpdateCategoryDto updateCategoryDto) {
+            @Valid @RequestBody NewCategoryRequest newCategoryRequest) {
 
         return ResponseEntity.ok()
-                .body(categoryService.patchCategory(catId, updateCategoryDto));
+                .body(categoryService.patchCategory(catId, newCategoryRequest));
     }
 }

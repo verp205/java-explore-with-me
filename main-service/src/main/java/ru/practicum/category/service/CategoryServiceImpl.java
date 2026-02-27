@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.category.dto.NewCategoryRequest;
 import ru.practicum.category.dto.CategoryDto;
-import ru.practicum.category.dto.UpdateCategoryDto;
 import ru.practicum.category.mapper.CategoryMapper;
 import ru.practicum.category.model.Category;
+import ru.practicum.event.repository.EventRepository;
 import ru.practicum.handler.exception.NotFoundException;
 import ru.practicum.handler.exception.ConflictException;
 
@@ -24,6 +24,7 @@ import java.util.Optional;
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final EventRepository eventRepository;
 
     @Override
     @Transactional
@@ -48,6 +49,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void deleteCategory(Long catId) {
         checkCategoryExists(catId);
+
+        if (eventRepository.existsByCategoryId(catId)) {
+            log.error("Cannot delete category {} because it has related events", catId);
+            throw new ConflictException("Category has events and cannot be deleted");
+        }
+
         categoryRepository.deleteById(catId);
 
         log.info("DELETE category: id={}", catId);
@@ -55,11 +62,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
-    public CategoryDto patchCategory(Long catId, UpdateCategoryDto updateCategoryDto) {
+    public CategoryDto patchCategory(Long catId, NewCategoryRequest newCategoryRequest) {
         Category category = checkCategoryExists(catId);
-        log.info("PATCH category: id={}, new name: {}", catId, updateCategoryDto);
+        log.info("PATCH category: id={}, new name: {}", catId, newCategoryRequest);
 
-        String newName = updateCategoryDto.getName();
+        String newName = newCategoryRequest.getName();
 
         if (newName != null && !newName.equals(category.getName())) {
 

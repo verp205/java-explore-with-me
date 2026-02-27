@@ -46,4 +46,6 @@ public interface EventMapper {
         }
         return new Location(location.getLat(), location.getLon());
     }
+
+    EventShortDto toEventShortDto(Event event);
 }
