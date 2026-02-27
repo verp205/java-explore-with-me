@@ -3,8 +3,6 @@ package ru.practicum.category.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Objects;
-
 @Entity
 @Getter
 @Setter

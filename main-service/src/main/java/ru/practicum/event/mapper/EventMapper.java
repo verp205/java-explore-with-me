@@ -29,9 +29,14 @@ public interface EventMapper {
 
     @Mapping(target = "category", source = "event.category")
     @Mapping(target = "initiator", source = "event.initiator")
-    @Mapping(target = "views", source = "views", defaultValue = "0L")
-    @Mapping(target = "confirmedRequests", source = "confirmedRequests", defaultValue = "0L")
-    EventShortDto toEventShortDto(Event event, Long views, Long confirmedRequests);
+    EventShortDto toEventShortDto(Event event);
+
+    default EventShortDto toEventShortDto(Event event, Long views, Long confirmedRequests) {
+        EventShortDto dto = toEventShortDto(event);
+        dto.setViews(views != null ? views : 0L);
+        dto.setConfirmedRequests(confirmedRequests != null ? confirmedRequests : 0L);
+        return dto;
+    }
 
     default LocationEntity map(Location location) {
         if (location == null) {
@@ -46,6 +51,4 @@ public interface EventMapper {
         }
         return new Location(location.getLat(), location.getLon());
     }
-
-    EventShortDto toEventShortDto(Event event);
 }
