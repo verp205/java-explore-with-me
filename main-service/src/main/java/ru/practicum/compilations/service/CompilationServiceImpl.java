@@ -120,8 +120,17 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     private CompilationDto buildCompilationDto(Compilation compilation) {
-        List<EventShortDto> eventShortDtos = compilation.getEvents().stream()
-                .map(eventMapper::toEventShortDto)
+        List<Event> events = new ArrayList<>(compilation.getEvents());
+
+        Map<Long, Long> viewsMap = getEventsViews(events);
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequests(events); // Здесь нужно будет реализовать реальный подсчет
+
+        List<EventShortDto> eventShortDtos = events.stream()
+                .map(event -> eventMapper.toEventShortDto(
+                        event,
+                        viewsMap.getOrDefault(event.getId(), 0L),
+                        confirmedRequestsMap.getOrDefault(event.getId(), 0L)
+                ))
                 .collect(Collectors.toList());
 
         return compilationMapper.toCompilationDto(compilation, eventShortDtos);
