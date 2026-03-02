@@ -3,6 +3,7 @@ services:
     container_name: main-service
     build:
       context: ./main-service
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
@@ -39,7 +40,8 @@ services:
 
   stats-service:
     build:
-      context: ./stats-service
+      context: ./stats-service/stats-server
+      dockerfile: stats-service/stats-server/Dockerfile
     container_name: stats-service
     depends_on:
       stats-db:
