@@ -16,7 +16,7 @@ services:
 
   stats-service:
     build:
-      context: .
+      context: ./stats-service/stats-server
       dockerfile: stats-service/Dockerfile
     container_name: stats-service
     depends_on:
