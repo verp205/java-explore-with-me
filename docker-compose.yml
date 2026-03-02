@@ -39,7 +39,7 @@ services:
 
   stats-service:
     build:
-      context: ./stats-service/stats-server
+      context: ./stats-service
     container_name: stats-service
     depends_on:
       stats-db:
