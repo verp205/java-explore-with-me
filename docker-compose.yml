@@ -11,8 +11,16 @@ services:
       SPRING_DATASOURCE_USERNAME: ewm
       SPRING_DATASOURCE_PASSWORD: 12345
     depends_on:
-      - ewm-db
-      - stats-service
+      ewm-db:
+        condition: service_healthy
+      stats-service:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
 
   stats-db:
     image: postgres:16.1
