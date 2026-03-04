@@ -7,11 +7,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class StatClientConfig {
 
-    @Value("${stats-server.url:http://localhost:9090}")
-    private String serverUrl;
+    @Value("${stats.base-url:http://localhost:9090}")
+    private String baseUrl;
+
+    @Value("${stats.service-name:main-service}")
+    private String serviceName;
 
     @Bean
     public StatClient statClient() {
-        return new StatClient(serverUrl);
+        return new StatClient(baseUrl, serviceName);
     }
 }

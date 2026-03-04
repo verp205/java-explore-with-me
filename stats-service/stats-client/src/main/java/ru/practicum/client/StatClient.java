@@ -1,6 +1,5 @@
 package ru.practicum.client;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import ru.practicum.dto.EndpointHitDto;
@@ -14,13 +13,14 @@ import java.util.List;
 public class StatClient {
 
     private final RestClient restClient;
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final String serviceName;
 
-    @Value("${stats.service-name}")
-    private String serviceName;
+    private static final DateTimeFormatter FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public StatClient(@Value("${stats.base-url}") String baseUrl) {
+    public StatClient(String baseUrl, String serviceName) {
         this.restClient = RestClient.create(baseUrl);
+        this.serviceName = serviceName;
     }
 
     public void saveHit(String uri, String ip) {
