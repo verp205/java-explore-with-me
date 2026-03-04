@@ -11,18 +11,19 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://ewm-db:5432/ewm
       SPRING_DATASOURCE_USERNAME: ewm
       SPRING_DATASOURCE_PASSWORD: 12345
-      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=70 -Djava.security.egd=file:/dev/./urandom"
+      # Оптимизация для быстрого запуска
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=70 -Djava.security.egd=file:/dev/./urandom -Dspring.datasource.hikari.connection-timeout=30000"
     depends_on:
       ewm-db:
         condition: service_healthy
       stats-service:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 90s
+      interval: 5s           # Уменьшил интервал
+      timeout: 3s            # Уменьшил таймаут
+      retries: 30            # Оставил 30 попыток
+      start_period: 45s      # Уменьшил start_period
 
   stats-db:
     image: postgres:16.1
@@ -51,16 +52,16 @@ services:
       SPRING_DATASOURCE_USERNAME: stats
       SPRING_DATASOURCE_PASSWORD: stats
       SERVER_PORT: 9090
-      # Добавляем Java опции для stats-service
+      # Оптимизация для stats-service
       JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=70 -Djava.security.egd=file:/dev/./urandom"
     ports:
       - "9090:9090"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9090/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 30
-      start_period: 90s
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
 
   ewm-db:
     image: postgres:16.1
