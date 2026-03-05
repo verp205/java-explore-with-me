@@ -260,32 +260,7 @@ public class EventServiceImpl implements EventService {
     private Map<Long, Long> getViewsBatch(List<Event> events) {
         if (events.isEmpty()) return Collections.emptyMap();
 
-        List<String> uris = events.stream()
-                .map(e -> "/events/" + e.getId())
-                .toList();
-
-        LocalDateTime start = events.stream()
-                .map(Event::getPublishedOn)
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo)
-                .orElse(LocalDateTime.now());
-
-        LocalDateTime end = LocalDateTime.now();
-
-        try {
-            List<ViewStatsDto> stats = statClient.getStats(start, end, uris, true);
-
-            return stats.stream()
-                    .filter(s -> s.getUri().contains("/events/"))
-                    .collect(Collectors.toMap(
-                            s -> Long.parseLong(s.getUri().substring(s.getUri().lastIndexOf("/") + 1)),
-                            ViewStatsDto::getHits,
-                            Long::max
-                    ));
-        } catch (Exception e) {
-            log.warn("Не удалось получить статистику просмотров: {}", e.getMessage());
-            return Collections.emptyMap();
-        }
+        return getEventsViews(events);
     }
 
     private void updateEventFields(Event event, String annotation, Long categoryId,
@@ -370,15 +345,6 @@ public class EventServiceImpl implements EventService {
                         row -> (Long) row[0],
                         row -> (Long) row[1]
                 ));
-    }
-
-    private Long getConfirmedRequests(Long eventId) {
-        try {
-            return requestRepository.countByEventIdAndStatus(eventId, RequestState.CONFIRMED);
-        } catch (Exception e) {
-            log.error("Ошибка при подсчете заявок для события {}: {}", eventId, e.getMessage());
-            return 0L;
-        }
     }
 
     private User checkUserExists(Long userId) {
