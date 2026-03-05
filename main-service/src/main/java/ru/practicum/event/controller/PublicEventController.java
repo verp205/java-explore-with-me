@@ -43,12 +43,11 @@ public class PublicEventController {
         PublicEventParams params = new PublicEventParams(text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, new PageParams(from, size));
 
-        List<EventShortDto> events = eventService.getEventsByPublicFilters(params, request);
-
         eventService.saveStats(request);
 
-        return ResponseEntity.ok()
-                .body(events);
+        List<EventShortDto> events = eventService.getEventsByPublicFilters(params, request);
+
+        return ResponseEntity.ok().body(events);
     }
 
     @GetMapping("/{id}")
