@@ -43,22 +43,23 @@ public class PublicEventController {
         PublicEventParams params = new PublicEventParams(text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, new PageParams(from, size));
 
-        eventService.saveStats(request);
-
         List<EventShortDto> events = eventService.getEventsByPublicFilters(params, request);
 
-        return ResponseEntity.ok().body(events);
+        eventService.saveStats(request);
+
+        return ResponseEntity.ok()
+                .body(events);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<EventFullDto> getEventById(@PathVariable Long id,
                                                      HttpServletRequest request) {
         log.info("Public GET event by ID: {}", id);
+        EventFullDto event = eventService.getEventById(id, request);
 
         eventService.saveStats(request);
 
-        EventFullDto event = eventService.getEventById(id, request);
-
-        return ResponseEntity.ok().body(event);
+        return ResponseEntity.ok()
+                .body(event);
     }
 }
