@@ -10,7 +10,7 @@ public class StatClientConfig {
     @Value("${stats.base-url:http://localhost:9090}")
     private String baseUrl;
 
-    @Value("${stats.service-name:main-service}")
+    @Value("${spring.application.name}")
     private String serviceName;
 
     @Bean

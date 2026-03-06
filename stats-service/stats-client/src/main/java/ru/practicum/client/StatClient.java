@@ -41,7 +41,6 @@ public class StatClient {
             if (response.getStatusCode().isError()) {
                 throw new RuntimeException("Failed to save hit: " + response.getStatusCode());
             }
-
         } catch (Exception e) {
             throw new RuntimeException("Error while saving hit to stats service", e);
         }
@@ -60,6 +59,7 @@ public class StatClient {
                                 .queryParam("unique", unique);
 
                         if (uris != null && !uris.isEmpty()) {
+                            // ВАЖНО: передаем каждый URI отдельным параметром
                             for (String uri : uris) {
                                 uriBuilder.queryParam("uris", uri);
                             }

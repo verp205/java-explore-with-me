@@ -261,12 +261,8 @@ public class EventServiceImpl implements EventService {
         }
 
         saveStats(request);
-        log.info("Saved stats for event {}", eventId);
 
-        EventFullDto dto = enrichEventWithStats(event);
-        log.info("Returning event {} with views {}", eventId, dto.getViews());
-
-        return dto;
+        return enrichEventWithStats(event);
     }
 
     @Override
@@ -279,7 +275,7 @@ public class EventServiceImpl implements EventService {
             if (!uri.startsWith("/events")) {
                 uri = "/events" + uri;
             }
-            log.info("Saving stats for URI: {}", uri);
+            log.info("Saving stats for URI: {}, IP: {}", uri, request.getRemoteAddr());
             statClient.saveHit(uri, request.getRemoteAddr());
         } catch (Exception e) {
             log.error("Ошибка при сохранении статистики: {}", e.getMessage());
@@ -318,7 +314,7 @@ public class EventServiceImpl implements EventService {
                 .map(e -> "/events/" + e.getId())
                 .collect(Collectors.toList());
 
-        LocalDateTime start = LocalDateTime.of(2020, 1, 1, 0, 0);
+        LocalDateTime start = LocalDateTime.of(2000, 1, 1, 0, 0);
         LocalDateTime end = LocalDateTime.now();
 
         try {
@@ -336,7 +332,7 @@ public class EventServiceImpl implements EventService {
                             }
                             Long id = Long.parseLong(idStr);
                             result.put(id, dto.getHits());
-                            log.info("Found {} views for event {}", dto.getHits(), id);
+                            log.debug("Found {} views for event {}", dto.getHits(), id);
                         }
                     } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
                         log.warn("Не удалось извлечь ID события из URI: {}", uri);
@@ -364,9 +360,12 @@ public class EventServiceImpl implements EventService {
         Map<Long, Long> viewsMap = getEventsViews(singleEventList);
         Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(singleEventList);
 
+        Long views = viewsMap.getOrDefault(event.getId(), 0L);
+        log.info("Event {} has {} views", event.getId(), views);
+
         return eventMapper.toEventFullDto(
                 event,
-                viewsMap.getOrDefault(event.getId(), 0L),
+                views,
                 confirmedMap.getOrDefault(event.getId(), 0L)
         );
     }
