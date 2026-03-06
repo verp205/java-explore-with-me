@@ -55,11 +55,11 @@ public class PublicEventController {
     public ResponseEntity<EventFullDto> getEventById(@PathVariable Long id,
                                                      HttpServletRequest request) {
         log.info("Public GET event by ID: {}", id);
-        EventFullDto event = eventService.getEventById(id, request);
 
         eventService.saveStats(request);
 
-        return ResponseEntity.ok()
-                .body(event);
+        EventFullDto event = eventService.getEventById(id, request);
+
+        return ResponseEntity.ok().body(event);
     }
 }

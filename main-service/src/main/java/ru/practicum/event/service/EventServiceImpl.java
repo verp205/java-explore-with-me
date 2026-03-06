@@ -235,7 +235,6 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
     }
 
-    @Override
     public EventFullDto getEventById(Long eventId, HttpServletRequest request) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event not found"));
@@ -244,8 +243,11 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Event must be published");
         }
 
-        return eventMapper.toEventFullDto(event, getViews(eventId),
-                requestRepository.countByEventIdAndStatus(eventId, RequestState.CONFIRMED));
+        Long viewsFromStats = getViews(eventId);
+
+        Long confirmedRequests = requestRepository.countByEventIdAndStatus(eventId, RequestState.CONFIRMED);
+
+        return eventMapper.toEventFullDto(event, viewsFromStats, confirmedRequests);
     }
 
     @Override
