@@ -260,15 +260,6 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Event must be published");
         }
 
-        saveStats(request);
-
-        // Небольшая задержка для гарантии сохранения статистики
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
         return enrichEventWithStats(event);
     }
 
