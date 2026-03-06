@@ -32,10 +32,13 @@ group by r.event.id
             @Param("status") RequestState status
     );
 
-    @Query("SELECT r.event.id, COUNT(r) " +
-            "FROM Request r " +
+    @Query("SELECT r.event.id, COUNT(r) FROM Request r " +
             "WHERE r.event.id IN :eventIds AND r.status = :status " +
             "GROUP BY r.event.id")
     List<Object[]> countConfirmedRequestsByEventIds(@Param("eventIds") List<Long> eventIds,
                                                     @Param("status") RequestState status);
+
+    default List<Object[]> countConfirmedRequestsByEventIds(List<Long> eventIds) {
+        return countConfirmedRequestsByEventIds(eventIds, RequestState.CONFIRMED);
+    }
 }
