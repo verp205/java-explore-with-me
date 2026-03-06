@@ -58,4 +58,9 @@ public class StatServiceImpl implements StatService {
             throw new RuntimeException("Error while getting stats", e);
         }
     }
+
+    @Override
+    public List<EndpointHit> getAllHits() {
+        return repository.findAll();
+    }
 }

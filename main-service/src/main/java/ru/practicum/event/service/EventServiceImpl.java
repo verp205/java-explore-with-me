@@ -262,6 +262,13 @@ public class EventServiceImpl implements EventService {
 
         saveStats(request);
 
+        // Небольшая задержка для гарантии сохранения статистики
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
         return enrichEventWithStats(event);
     }
 
@@ -272,11 +279,16 @@ public class EventServiceImpl implements EventService {
             if (uri.endsWith("/")) {
                 uri = uri.substring(0, uri.length() - 1);
             }
-            if (!uri.startsWith("/events")) {
-                uri = "/events" + uri;
+
+            // Получаем реальный IP из заголовка X-Forwarded-For
+            String ip = request.getRemoteAddr();
+            String forwardedFor = request.getHeader("X-Forwarded-For");
+            if (forwardedFor != null && !forwardedFor.isEmpty()) {
+                ip = forwardedFor.split(",")[0].trim();
             }
-            log.info("Saving stats for URI: {}, IP: {}", uri, request.getRemoteAddr());
-            statClient.saveHit(uri, request.getRemoteAddr());
+
+            log.info("Saving stats for URI: {}, IP: {}, X-Forwarded-For: {}", uri, request.getRemoteAddr(), forwardedFor);
+            statClient.saveHit(uri, ip);
         } catch (Exception e) {
             log.error("Ошибка при сохранении статистики: {}", e.getMessage());
         }
@@ -314,11 +326,13 @@ public class EventServiceImpl implements EventService {
                 .map(e -> "/events/" + e.getId())
                 .collect(Collectors.toList());
 
+        // Устанавливаем широкий диапазон для поиска статистики
         LocalDateTime start = LocalDateTime.of(2000, 1, 1, 0, 0);
-        LocalDateTime end = LocalDateTime.now();
+        LocalDateTime end = LocalDateTime.now().plusHours(1); // Добавляем час вперед
 
         try {
-            List<ViewStatsDto> stats = statClient.getStats(start, end, uris, true);
+            // ИЗМЕНЕНО: unique = false для подсчета ВСЕХ просмотров
+            List<ViewStatsDto> stats = statClient.getStats(start, end, uris, false);
             Map<Long, Long> result = new HashMap<>();
 
             if (stats != null) {
@@ -332,7 +346,7 @@ public class EventServiceImpl implements EventService {
                             }
                             Long id = Long.parseLong(idStr);
                             result.put(id, dto.getHits());
-                            log.debug("Found {} views for event {}", dto.getHits(), id);
+                            log.info("Found {} total views for event {}", dto.getHits(), id);
                         }
                     } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
                         log.warn("Не удалось извлечь ID события из URI: {}", uri);
@@ -342,6 +356,7 @@ public class EventServiceImpl implements EventService {
 
             for (Event event : events) {
                 result.putIfAbsent(event.getId(), 0L);
+                log.info("Event {} final total views: {}", event.getId(), result.get(event.getId()));
             }
 
             return result;
@@ -361,7 +376,7 @@ public class EventServiceImpl implements EventService {
         Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(singleEventList);
 
         Long views = viewsMap.getOrDefault(event.getId(), 0L);
-        log.info("Event {} has {} views", event.getId(), views);
+        log.info("Event {} has {} total views", event.getId(), views);
 
         return eventMapper.toEventFullDto(
                 event,

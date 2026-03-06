@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.statservice.handler.BadRequestException;
+import ru.practicum.statservice.model.EndpointHit;
 import ru.practicum.statservice.service.StatService;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StatController {
     private final StatService statService;
+
+    @GetMapping("/hits")
+    public ResponseEntity<List<EndpointHit>> getAllHits() {
+        List<EndpointHit> hits = statService.getAllHits();
+        log.info("Все хиты в БД: {}", hits);
+        return ResponseEntity.ok(hits);
+    }
 
     @PostMapping("/hit")
     public ResponseEntity<Void> hit(@Valid @RequestBody EndpointHitDto hitDto) {

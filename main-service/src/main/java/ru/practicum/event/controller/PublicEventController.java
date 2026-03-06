@@ -43,8 +43,6 @@ public class PublicEventController {
         PublicEventParams params = new PublicEventParams(text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, new PageParams(from, size));
 
-        eventService.saveStats(request);
-
         List<EventShortDto> events = eventService.getEventsByPublicFilters(params, request);
 
         return ResponseEntity.ok()
@@ -55,8 +53,6 @@ public class PublicEventController {
     public ResponseEntity<EventFullDto> getEventById(@PathVariable Long id,
                                                      HttpServletRequest request) {
         log.info("Public GET event by ID: {}", id);
-
-        eventService.saveStats(request);
 
         EventFullDto event = eventService.getEventById(id, request);
 

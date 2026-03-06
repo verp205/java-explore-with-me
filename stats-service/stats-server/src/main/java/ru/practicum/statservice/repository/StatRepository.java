@@ -12,7 +12,6 @@ import java.util.List;
 public interface StatRepository extends JpaRepository<EndpointHit, Long> {
 
     // === УНИКАЛЬНЫЕ ХИТЫ ===
-
     @Query("SELECT new ru.practicum.dto.ViewStatsDto(e.app, e.uri, COUNT(DISTINCT e.ip)) " +
             "FROM EndpointHit e " +
             "WHERE e.timestamp BETWEEN :start AND :end " +
@@ -32,22 +31,21 @@ public interface StatRepository extends JpaRepository<EndpointHit, Long> {
                                          @Param("end") LocalDateTime end);
 
     // === НЕ УНИКАЛЬНЫЕ ХИТЫ ===
-
-    @Query("SELECT new ru.practicum.dto.ViewStatsDto(e.app, e.uri, COUNT(e.ip)) " +
+    @Query("SELECT new ru.practicum.dto.ViewStatsDto(e.app, e.uri, COUNT(e)) " +
             "FROM EndpointHit e " +
             "WHERE e.timestamp BETWEEN :start AND :end " +
             "AND e.uri IN :uris " +
             "GROUP BY e.app, e.uri " +
-            "ORDER BY COUNT(e.ip) DESC")
+            "ORDER BY COUNT(e) DESC")
     List<ViewStatsDto> findAllHitsByUris(@Param("start") LocalDateTime start,
                                          @Param("end") LocalDateTime end,
                                          @Param("uris") List<String> uris);
 
-    @Query("SELECT new ru.practicum.dto.ViewStatsDto(e.app, e.uri, COUNT(e.ip)) " +
+    @Query("SELECT new ru.practicum.dto.ViewStatsDto(e.app, e.uri, COUNT(e)) " +
             "FROM EndpointHit e " +
             "WHERE e.timestamp BETWEEN :start AND :end " +
             "GROUP BY e.app, e.uri " +
-            "ORDER BY COUNT(e.ip) DESC")
+            "ORDER BY COUNT(e) DESC")
     List<ViewStatsDto> findAllHitsAll(@Param("start") LocalDateTime start,
                                       @Param("end") LocalDateTime end);
 }
