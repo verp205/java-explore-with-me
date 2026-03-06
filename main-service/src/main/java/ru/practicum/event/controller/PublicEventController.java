@@ -43,9 +43,9 @@ public class PublicEventController {
         PublicEventParams params = new PublicEventParams(text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, new PageParams(from, size));
 
-        eventService.saveStats(request);
-
         List<EventShortDto> events = eventService.getEventsByPublicFilters(params, request);
+
+        eventService.saveStats(request);
 
         return ResponseEntity.ok()
                 .body(events);
@@ -56,9 +56,9 @@ public class PublicEventController {
                                                      HttpServletRequest request) {
         log.info("Public GET event by ID: {}", id);
 
-        eventService.saveStats(request);
-
         EventFullDto event = eventService.getEventById(id, request);
+
+        eventService.saveStats(request);
 
         return ResponseEntity.ok(event);
     }
