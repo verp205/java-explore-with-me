@@ -52,7 +52,6 @@ public class EventServiceImpl implements EventService {
             return Collections.emptyList();
         }
 
-        // Пакетное получение всех данных
         Map<Long, Long> viewsMap = getEventsViews(eventList);
         Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(eventList);
 
@@ -81,7 +80,6 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("Event not found or not accessible"));
 
-        // Получаем все данные одним запросом для этого события
         return enrichEventWithStats(event);
     }
 
@@ -135,7 +133,6 @@ public class EventServiceImpl implements EventService {
             return Collections.emptyList();
         }
 
-        // Пакетное получение всех данных
         Map<Long, Long> viewsMap = getEventsViews(events);
         Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(events);
 
@@ -208,7 +205,6 @@ public class EventServiceImpl implements EventService {
                 return Collections.emptyList();
             }
 
-            // Пакетное получение всех данных
             Map<Long, Long> viewsMap = getEventsViews(events);
             Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(events);
 
@@ -241,7 +237,6 @@ public class EventServiceImpl implements EventService {
             return Collections.emptyList();
         }
 
-        // Пакетное получение всех данных
         Map<Long, Long> viewsMap = getEventsViews(events);
         Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(events);
 
@@ -266,15 +261,12 @@ public class EventServiceImpl implements EventService {
         }
 
         saveStats(request);
+        log.info("Saved stats for event {}", eventId);
 
-        try {
-            // Небольшая задержка, чтобы статистика успела сохраниться
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        EventFullDto dto = enrichEventWithStats(event);
+        log.info("Returning event {} with views {}", eventId, dto.getViews());
 
-        return enrichEventWithStats(event);
+        return dto;
     }
 
     @Override
@@ -284,6 +276,10 @@ public class EventServiceImpl implements EventService {
             if (uri.endsWith("/")) {
                 uri = uri.substring(0, uri.length() - 1);
             }
+            if (!uri.startsWith("/events")) {
+                uri = "/events" + uri;
+            }
+            log.info("Saving stats for URI: {}", uri);
             statClient.saveHit(uri, request.getRemoteAddr());
         } catch (Exception e) {
             log.error("Ошибка при сохранении статистики: {}", e.getMessage());
@@ -326,7 +322,7 @@ public class EventServiceImpl implements EventService {
         LocalDateTime end = LocalDateTime.now();
 
         try {
-            List<ViewStatsDto> stats = statClient.getStats(start, end, uris, true);
+            List<ViewStatsDto> stats = statClient.getStats(start, end, uris, false);
             Map<Long, Long> result = new HashMap<>();
 
             if (stats != null) {
@@ -340,6 +336,7 @@ public class EventServiceImpl implements EventService {
                             }
                             Long id = Long.parseLong(idStr);
                             result.put(id, dto.getHits());
+                            log.info("Found {} views for event {}", dto.getHits(), id);
                         }
                     } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
                         log.warn("Не удалось извлечь ID события из URI: {}", uri);
@@ -347,7 +344,6 @@ public class EventServiceImpl implements EventService {
                 }
             }
 
-            // Убеждаемся, что для всех событий есть значение (даже 0)
             for (Event event : events) {
                 result.putIfAbsent(event.getId(), 0L);
             }
@@ -355,8 +351,6 @@ public class EventServiceImpl implements EventService {
             return result;
         } catch (Exception e) {
             log.error("Ошибка при обращении к сервису статистики: {}", e.getMessage());
-
-            // Возвращаем нули для всех событий в случае ошибки
             return events.stream()
                     .collect(Collectors.toMap(
                             Event::getId,
