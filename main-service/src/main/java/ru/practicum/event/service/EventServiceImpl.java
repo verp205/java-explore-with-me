@@ -318,7 +318,7 @@ public class EventServiceImpl implements EventService {
         LocalDateTime end = LocalDateTime.now();
 
         try {
-            List<ViewStatsDto> stats = statClient.getStats(start, end, uris, false);
+            List<ViewStatsDto> stats = statClient.getStats(start, end, uris, true);
             Map<Long, Long> result = new HashMap<>();
 
             if (stats != null) {
