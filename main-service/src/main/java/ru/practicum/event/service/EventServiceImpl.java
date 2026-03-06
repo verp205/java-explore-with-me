@@ -323,7 +323,7 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
 
         LocalDateTime start = LocalDateTime.of(2020, 1, 1, 0, 0);
-        LocalDateTime end = LocalDateTime.now().plusYears(10);
+        LocalDateTime end = LocalDateTime.now();
 
         try {
             List<ViewStatsDto> stats = statClient.getStats(start, end, uris, true);

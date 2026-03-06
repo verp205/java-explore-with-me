@@ -60,8 +60,7 @@ public class StatClient {
                                 .queryParam("unique", unique);
 
                         if (uris != null && !uris.isEmpty()) {
-                            // Важно: передаем список URI
-                            uriBuilder.queryParam("uris", uris);
+                            uriBuilder.queryParam("uris", String.join(",", uris));
                         }
                         return uriBuilder.build();
                     })
