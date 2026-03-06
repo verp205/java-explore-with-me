@@ -30,6 +30,7 @@ import ru.practicum.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -235,6 +236,7 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public EventFullDto getEventById(Long eventId, HttpServletRequest request) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event not found"));
@@ -245,9 +247,19 @@ public class EventServiceImpl implements EventService {
 
         Long viewsFromStats = getViews(eventId);
 
+        CompletableFuture.runAsync(() -> {
+            try {
+                statClient.saveHit(request.getRequestURI(), request.getRemoteAddr());
+            } catch (Exception e) {
+                log.error("Ошибка при сохранении статистики: {}", e.getMessage());
+            }
+        });
+
+        Long views = viewsFromStats + 1;
+
         Long confirmedRequests = requestRepository.countByEventIdAndStatus(eventId, RequestState.CONFIRMED);
 
-        return eventMapper.toEventFullDto(event, viewsFromStats, confirmedRequests);
+        return eventMapper.toEventFullDto(event, views, confirmedRequests);
     }
 
     @Override
