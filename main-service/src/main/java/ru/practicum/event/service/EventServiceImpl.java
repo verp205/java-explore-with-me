@@ -23,7 +23,6 @@ import ru.practicum.event.repository.EventRepository;
 import ru.practicum.handler.exception.BadRequestException;
 import ru.practicum.handler.exception.ConflictException;
 import ru.practicum.handler.exception.NotFoundException;
-import ru.practicum.request.model.RequestState;
 import ru.practicum.request.repository.RequestRepository;
 import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepository;
