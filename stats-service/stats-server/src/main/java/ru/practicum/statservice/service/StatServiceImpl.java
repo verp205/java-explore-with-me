@@ -1,6 +1,7 @@
 package ru.practicum.statservice.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.EndpointHitDto;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class StatServiceImpl implements StatService {
@@ -36,20 +38,16 @@ public class StatServiceImpl implements StatService {
                                        List<String> uris, boolean unique) {
 
         try {
-            // Конвертируем строки в LocalDateTime
             LocalDateTime startTime = LocalDateTime.parse(start, FORMATTER);
             LocalDateTime endTime = LocalDateTime.parse(end, FORMATTER);
 
-            // Вызываем соответствующие методы репозитория
             if (uris == null || uris.isEmpty()) {
-                // Все URI
                 if (unique) {
                     return repository.findUniqueHitsAll(startTime, endTime);
                 } else {
                     return repository.findAllHitsAll(startTime, endTime);
                 }
             } else {
-                // Только указанные URI
                 if (unique) {
                     return repository.findUniqueHitsByUris(startTime, endTime, uris);
                 } else {
@@ -58,9 +56,7 @@ public class StatServiceImpl implements StatService {
             }
 
         } catch (Exception e) {
-            // Логируем ошибку и возвращаем пустой список
-            // В продакшене нужно обрабатывать ошибки лучше
-            return Collections.emptyList();
+            throw new RuntimeException("Error while getting stats", e);
         }
     }
 }

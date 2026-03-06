@@ -43,9 +43,9 @@ public class PublicEventController {
         PublicEventParams params = new PublicEventParams(text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, new PageParams(from, size));
 
-        List<EventShortDto> events = eventService.getEventsByPublicFilters(params, request);
-
         eventService.saveStats(request);
+
+        List<EventShortDto> events = eventService.getEventsByPublicFilters(params, request);
 
         return ResponseEntity.ok()
                 .body(events);
@@ -60,6 +60,6 @@ public class PublicEventController {
 
         EventFullDto event = eventService.getEventById(id, request);
 
-        return ResponseEntity.ok().body(event);
+        return ResponseEntity.ok(event);
     }
 }

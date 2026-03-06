@@ -30,7 +30,6 @@ import ru.practicum.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -245,32 +244,26 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Event must be published");
         }
 
-        Long viewsFromStats = getViews(eventId);
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                statClient.saveHit(request.getRequestURI(), request.getRemoteAddr());
-            } catch (Exception e) {
-                log.error("Ошибка при сохранении статистики: {}", e.getMessage());
-            }
-        });
-
-        Long views = viewsFromStats + 1;
-
-        Long confirmedRequests = requestRepository.countByEventIdAndStatus(eventId, RequestState.CONFIRMED);
-
-        return eventMapper.toEventFullDto(event, views, confirmedRequests);
+        return eventMapper.toEventFullDto(event, getViews(eventId),
+                requestRepository.countByEventIdAndStatus(eventId, RequestState.CONFIRMED));
     }
 
     @Override
     public void saveStats(HttpServletRequest request) {
         try {
+            String uri = request.getRequestURI();
+
+            if (uri.endsWith("/")) {
+                uri = uri.substring(0, uri.length() - 1);
+            }
+
             statClient.saveHit(
-                    request.getRequestURI(),
+                    uri,
                     request.getRemoteAddr()
             );
+
         } catch (Exception e) {
-            log.warn("Failed to save stats: {}", e.getMessage());
+            log.error("Ошибка при сохранении статистики: {}", e.getMessage());
         }
     }
 
@@ -284,32 +277,41 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Long> getViewsBatch(List<Event> events) {
-        if (events.isEmpty()) return Collections.emptyMap();
+        if (events == null || events.isEmpty()) {
+            return Collections.emptyMap();
+        }
 
         List<String> uris = events.stream()
                 .map(e -> "/events/" + e.getId())
                 .collect(Collectors.toList());
 
-        LocalDateTime start = LocalDateTime.of(2000, 1, 1, 0, 0);
-        LocalDateTime end = LocalDateTime.now();
+        LocalDateTime start = LocalDateTime.of(2020, 1, 1, 0, 0);
+        LocalDateTime end = LocalDateTime.now().plusYears(10);
 
         try {
             List<ViewStatsDto> stats = statClient.getStats(start, end, uris, true);
             Map<Long, Long> result = new HashMap<>();
 
-            for (ViewStatsDto dto : stats) {
-                String uri = dto.getUri();
-
-                try {
-                    Long id = Long.parseLong(uri.substring(uri.lastIndexOf("/") + 1));
-                    result.put(id, dto.getHits());
-                } catch (NumberFormatException e) {
-                    log.warn("Failed to parse event ID from URI: {}", uri);
+            if (stats != null) {
+                for (ViewStatsDto dto : stats) {
+                    String uri = dto.getUri();
+                    try {
+                        if (uri.startsWith("/events/")) {
+                            String idStr = uri.substring("/events/".length());
+                            if (idStr.contains("/")) {
+                                idStr = idStr.substring(0, idStr.indexOf("/"));
+                            }
+                            Long id = Long.parseLong(idStr);
+                            result.put(id, dto.getHits());
+                        }
+                    } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+                        log.warn("Не удалось извлечь ID события из URI: {}", uri);
+                    }
                 }
             }
             return result;
         } catch (Exception e) {
-            log.error("Error calling Stat Client", e);
+            log.error("Ошибка при обращении к сервису статистики: {}", e.getMessage());
             return Collections.emptyMap();
         }
     }
@@ -371,21 +373,24 @@ public class EventServiceImpl implements EventService {
 
         try {
             List<ViewStatsDto> stats = statClient.getStats(
-                    LocalDateTime.now().minusYears(10), // Берем большой интервал
-                    LocalDateTime.now().plusYears(1),
+                    LocalDateTime.of(2020, 1, 1, 0, 0),
+                    LocalDateTime.now().plusYears(10),
                     uris,
                     true);
 
             return stats.stream()
-                    .filter(s -> s.getUri().contains("/events/"))
+                    .filter(s -> s.getUri().startsWith("/events/"))
                     .collect(Collectors.toMap(
-                            s -> Long.parseLong(s.getUri().substring(s.getUri().lastIndexOf("/") + 1)),
+                            s -> {
+                                String segment = s.getUri().substring(s.getUri().lastIndexOf("/") + 1);
+                                return Long.parseLong(segment);
+                            },
                             ViewStatsDto::getHits,
                             (existing, replacement) -> existing
                     ));
         } catch (Exception e) {
             log.warn("Не удалось получить статистику просмотров: {}", e.getMessage());
-            return Collections.emptyMap(); // Возвращаем пустую карту вместо ошибки
+            return Collections.emptyMap();
         }
     }
 

@@ -24,16 +24,13 @@ public class StatClient {
     }
 
     public void saveHit(String uri, String ip) {
-        EndpointHitDto hitDto = new EndpointHitDto(
-                serviceName,
-                uri,
-                ip,
-                LocalDateTime.now()
-        );
-        saveHit(hitDto);
-    }
+        EndpointHitDto hitDto = EndpointHitDto.builder()
+                .app(serviceName)
+                .uri(uri)
+                .ip(ip)
+                .timestamp(LocalDateTime.now())
+                .build();
 
-    public void saveHit(EndpointHitDto hitDto) {
         try {
             ResponseEntity<Void> response = restClient.post()
                     .uri("/hit")
@@ -44,13 +41,13 @@ public class StatClient {
             if (response.getStatusCode().isError()) {
                 throw new RuntimeException("Failed to save hit: " + response.getStatusCode());
             }
+
         } catch (Exception e) {
             throw new RuntimeException("Error while saving hit to stats service", e);
         }
     }
 
-    public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end,
-                                       List<String> uris, boolean unique) {
+    public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
         try {
             String startStr = start.format(FORMATTER);
             String endStr = end.format(FORMATTER);
@@ -63,9 +60,9 @@ public class StatClient {
                                 .queryParam("unique", unique);
 
                         if (uris != null && !uris.isEmpty()) {
-                            uriBuilder.queryParam("uris", String.join(",", uris));
+                            // Важно: передаем список URI
+                            uriBuilder.queryParam("uris", uris);
                         }
-
                         return uriBuilder.build();
                     })
                     .retrieve()
@@ -73,7 +70,7 @@ public class StatClient {
 
             return Arrays.asList(response.getBody() != null ? response.getBody() : new ViewStatsDto[0]);
         } catch (Exception e) {
-            throw new RuntimeException("Error while getting stats from stats service", e);
+            throw new RuntimeException("Error while getting stats", e);
         }
     }
 }
