@@ -271,7 +271,6 @@ public class EventServiceImpl implements EventService {
                 uri = uri.substring(0, uri.length() - 1);
             }
 
-            // Получаем реальный IP из заголовка X-Forwarded-For
             String ip = request.getRemoteAddr();
             String forwardedFor = request.getHeader("X-Forwarded-For");
             if (forwardedFor != null && !forwardedFor.isEmpty()) {
@@ -317,13 +316,11 @@ public class EventServiceImpl implements EventService {
                 .map(e -> "/events/" + e.getId())
                 .collect(Collectors.toList());
 
-        // Устанавливаем широкий диапазон для поиска статистики
         LocalDateTime start = LocalDateTime.of(2000, 1, 1, 0, 0);
-        LocalDateTime end = LocalDateTime.now().plusHours(1); // Добавляем час вперед
+        LocalDateTime end = LocalDateTime.now();
 
         try {
-            // ИЗМЕНЕНО: unique = false для подсчета ВСЕХ просмотров
-            List<ViewStatsDto> stats = statClient.getStats(start, end, uris, false);
+            List<ViewStatsDto> stats = statClient.getStats(start, end, uris, true);
             Map<Long, Long> result = new HashMap<>();
 
             if (stats != null) {
