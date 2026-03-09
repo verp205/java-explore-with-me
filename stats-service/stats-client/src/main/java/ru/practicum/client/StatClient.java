@@ -7,12 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStats;
-import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.dto.ViewsStatsRequest;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 
 public class StatClient {

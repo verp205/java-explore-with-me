@@ -13,7 +13,6 @@ import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.client.StatClient;
 import ru.practicum.dto.ViewStats;
-import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.dto.ViewsStatsRequest;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.mapper.EventMapper;

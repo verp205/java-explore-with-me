@@ -15,7 +15,6 @@ import ru.practicum.compilations.dto.CompilationMapper;
 import ru.practicum.compilations.model.Compilation;
 import ru.practicum.compilations.repository.CompilationRepository;
 import ru.practicum.dto.ViewStats;
-import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.dto.ViewsStatsRequest;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.mapper.EventMapper;
