@@ -22,6 +22,4 @@ public interface EventService {
     List<EventShortDto> getEventsByPublicFilters(PublicEventParams params, HttpServletRequest request);
 
     EventFullDto getEventById(Long eventId, HttpServletRequest request);
-
-    void saveStats(HttpServletRequest request);
 }

@@ -12,7 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.client.StatClient;
+import ru.practicum.dto.ViewStats;
 import ru.practicum.dto.ViewStatsDto;
+import ru.practicum.dto.ViewsStatsRequest;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
@@ -28,6 +30,7 @@ import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -52,7 +55,7 @@ public class EventServiceImpl implements EventService {
             return Collections.emptyList();
         }
 
-        Map<Long, Long> viewsMap = getEventsViews(eventList);
+        Map<Long, Long> viewsMap = getEventViews(eventList);
         Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(eventList);
 
         return eventList.stream()
@@ -133,7 +136,7 @@ public class EventServiceImpl implements EventService {
             return Collections.emptyList();
         }
 
-        Map<Long, Long> viewsMap = getEventsViews(events);
+        Map<Long, Long> viewsMap = getEventViews(events);
         Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(events);
 
         return events.stream()
@@ -205,7 +208,7 @@ public class EventServiceImpl implements EventService {
                 return Collections.emptyList();
             }
 
-            Map<Long, Long> viewsMap = getEventsViews(events);
+            Map<Long, Long> viewsMap = getEventViews(events);
             Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(events);
 
             return events.stream()
@@ -237,7 +240,7 @@ public class EventServiceImpl implements EventService {
             return Collections.emptyList();
         }
 
-        Map<Long, Long> viewsMap = getEventsViews(events);
+        Map<Long, Long> viewsMap = getEventViews(events);
         Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(events);
 
         return events.stream()
@@ -263,27 +266,6 @@ public class EventServiceImpl implements EventService {
         return enrichEventWithStats(event);
     }
 
-    @Override
-    public void saveStats(HttpServletRequest request) {
-        try {
-            String uri = request.getRequestURI();
-            if (uri.endsWith("/")) {
-                uri = uri.substring(0, uri.length() - 1);
-            }
-
-            String ip = request.getRemoteAddr();
-            String forwardedFor = request.getHeader("X-Forwarded-For");
-            if (forwardedFor != null && !forwardedFor.isEmpty()) {
-                ip = forwardedFor.split(",")[0].trim();
-            }
-
-            log.info("Saving stats for URI: {}, IP: {}, X-Forwarded-For: {}", uri, request.getRemoteAddr(), forwardedFor);
-            statClient.saveHit(uri, ip);
-        } catch (Exception e) {
-            log.error("Ошибка при сохранении статистики: {}", e.getMessage());
-        }
-    }
-
     private Map<Long, Long> getConfirmedRequestsBatch(List<Event> events) {
         if (events == null || events.isEmpty()) {
             return Collections.emptyMap();
@@ -307,60 +289,47 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    private Map<Long, Long> getEventsViews(List<Event> events) {
+    private Map<Long, Long> getEventViews(List<Event> events) {
+
         if (events == null || events.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        List<String> uris = events.stream()
-                .map(e -> "/events/" + e.getId())
-                .collect(Collectors.toList());
+        Map<String, Long> eventUriAndIdMap = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toMap(
+                        id -> "/events/" + id,
+                        Function.identity()
+                ));
 
-        LocalDateTime start = LocalDateTime.of(2000, 1, 1, 0, 0);
+        LocalDateTime start = events.stream()
+                .map(Event::getPublishedOn)
+                .filter(Objects::nonNull)
+                .min(LocalDateTime::compareTo)
+                .orElse(LocalDateTime.now().minusYears(1));
+
         LocalDateTime end = LocalDateTime.now();
 
-        try {
-            List<ViewStatsDto> stats = statClient.getStats(start, end, uris, true);
-            Map<Long, Long> result = new HashMap<>();
+        List<ViewStats> stats = statClient.getStats(
+                ViewsStatsRequest.builder()
+                        .uris(eventUriAndIdMap.keySet())
+                        .unique(true)
+                        .start(start)
+                        .end(end)
+                        .build()
+        );
 
-            if (stats != null) {
-                for (ViewStatsDto dto : stats) {
-                    String uri = dto.getUri();
-                    try {
-                        if (uri.startsWith("/events/")) {
-                            String idStr = uri.substring("/events/".length());
-                            if (idStr.contains("/")) {
-                                idStr = idStr.substring(0, idStr.indexOf("/"));
-                            }
-                            Long id = Long.parseLong(idStr);
-                            result.put(id, dto.getHits());
-                            log.info("Found {} total views for event {}", dto.getHits(), id);
-                        }
-                    } catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-                        log.warn("Не удалось извлечь ID события из URI: {}", uri);
-                    }
-                }
-            }
-
-            for (Event event : events) {
-                result.putIfAbsent(event.getId(), 0L);
-                log.info("Event {} final total views: {}", event.getId(), result.get(event.getId()));
-            }
-
-            return result;
-        } catch (Exception e) {
-            log.error("Ошибка при обращении к сервису статистики: {}", e.getMessage());
-            return events.stream()
-                    .collect(Collectors.toMap(
-                            Event::getId,
-                            event -> 0L
-                    ));
-        }
+        return stats.stream()
+                .filter(stat -> eventUriAndIdMap.containsKey(stat.getUri()))
+                .collect(Collectors.toMap(
+                        stat -> eventUriAndIdMap.get(stat.getUri()),
+                        ViewStats::getHits
+                ));
     }
 
     private EventFullDto enrichEventWithStats(Event event) {
         List<Event> singleEventList = Collections.singletonList(event);
-        Map<Long, Long> viewsMap = getEventsViews(singleEventList);
+        Map<Long, Long> viewsMap = getEventViews(singleEventList);
         Map<Long, Long> confirmedMap = getConfirmedRequestsBatch(singleEventList);
 
         Long views = viewsMap.getOrDefault(event.getId(), 0L);

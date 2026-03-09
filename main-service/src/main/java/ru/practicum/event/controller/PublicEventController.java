@@ -6,10 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.client.StatClient;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.dto.PageParams;
 import ru.practicum.event.dto.PublicEventParams;
+import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.service.EventService;
 import ru.practicum.handler.exception.BadRequestException;
 
@@ -22,6 +24,7 @@ import java.util.List;
 @RequestMapping("/events")
 public class PublicEventController {
     private final EventService eventService;
+    private final StatClient statClient;
 
     @GetMapping
     public ResponseEntity<List<EventShortDto>> getEventsByPublicFilters(
@@ -43,7 +46,7 @@ public class PublicEventController {
         PublicEventParams params = new PublicEventParams(text, categories, paid, rangeStart,
                 rangeEnd, onlyAvailable, sort, new PageParams(from, size));
 
-        eventService.saveStats(request);
+        statClient.saveHit(request);
 
         List<EventShortDto> events = eventService.getEventsByPublicFilters(params, request);
 
@@ -56,7 +59,7 @@ public class PublicEventController {
                                                      HttpServletRequest request) {
         log.info("Public GET event by ID: {}", id);
 
-        eventService.saveStats(request);
+        statClient.saveHit(request);
 
         EventFullDto event = eventService.getEventById(id, request);
 

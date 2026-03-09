@@ -1,9 +1,14 @@
 package ru.practicum.client;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import ru.practicum.dto.EndpointHitDto;
+import ru.practicum.dto.ViewStats;
 import ru.practicum.dto.ViewStatsDto;
+import ru.practicum.dto.ViewsStatsRequest;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,12 +23,15 @@ public class StatClient {
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public StatClient(String baseUrl, String serviceName) {
+    public StatClient(String baseUrl, @Value("${stats.service-name}") String serviceName) {
         this.restClient = RestClient.create(baseUrl);
         this.serviceName = serviceName;
     }
 
-    public void saveHit(String uri, String ip) {
+    public void saveHit(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String ip = request.getRemoteAddr();
+
         EndpointHitDto hitDto = EndpointHitDto.builder()
                 .app(serviceName)
                 .uri(uri)
@@ -46,30 +54,21 @@ public class StatClient {
         }
     }
 
-    public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
+    public List<ViewStats> getStats(ViewsStatsRequest request) {
+
         try {
-            String startStr = start.format(FORMATTER);
-            String endStr = end.format(FORMATTER);
-
-            ResponseEntity<ViewStatsDto[]> response = restClient.get()
-                    .uri(uriBuilder -> {
-                        uriBuilder.path("/stats")
-                                .queryParam("start", startStr)
-                                .queryParam("end", endStr)
-                                .queryParam("unique", unique);
-
-                        if (uris != null && !uris.isEmpty()) {
-                            // ВАЖНО: передаем каждый URI отдельным параметром
-                            for (String uri : uris) {
-                                uriBuilder.queryParam("uris", uri);
-                            }
-                        }
-                        return uriBuilder.build();
-                    })
+            return restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/stats")
+                            .queryParam("start", request.getStart())
+                            .queryParam("end", request.getEnd())
+                            .queryParam("uris", request.getUris())
+                            .queryParam("unique", request.isUnique())
+                            .build()
+                    )
                     .retrieve()
-                    .toEntity(ViewStatsDto[].class);
+                    .body(new ParameterizedTypeReference<List<ViewStats>>() {});
 
-            return Arrays.asList(response.getBody() != null ? response.getBody() : new ViewStatsDto[0]);
         } catch (Exception e) {
             throw new RuntimeException("Error while getting stats", e);
         }

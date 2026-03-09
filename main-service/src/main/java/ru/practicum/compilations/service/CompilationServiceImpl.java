@@ -14,7 +14,9 @@ import ru.practicum.compilations.dto.UpdateCompilationRequest;
 import ru.practicum.compilations.dto.CompilationMapper;
 import ru.practicum.compilations.model.Compilation;
 import ru.practicum.compilations.repository.CompilationRepository;
+import ru.practicum.dto.ViewStats;
 import ru.practicum.dto.ViewStatsDto;
+import ru.practicum.dto.ViewsStatsRequest;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.model.Event;
@@ -143,22 +145,26 @@ public class CompilationServiceImpl implements CompilationService {
             return views;
         }
 
-        List<String> uris = events.stream()
+        Set<String> uris = events.stream()
                 .map(event -> "/events/" + event.getId())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         try {
-            List<ViewStatsDto> stats = statClient.getStats(
-                    LocalDateTime.now().minusYears(1),
-                    LocalDateTime.now().plusYears(1),
-                    uris.isEmpty() ? Collections.emptyList() : uris,
-                    true);
+            List<ViewStats> stats = statClient.getStats(
+                    ViewsStatsRequest.builder()
+                            .start(LocalDateTime.now().minusYears(1))
+                            .end(LocalDateTime.now())
+                            .uris(uris)
+                            .unique(true)
+                            .build()
+            );
 
-            for (ViewStatsDto stat : stats) {
+            for (ViewStats stat : stats) {
                 String uri = stat.getUri();
                 Long eventId = Long.parseLong(uri.substring(uri.lastIndexOf("/") + 1));
                 views.put(eventId, stat.getHits());
             }
+
         } catch (Exception e) {
             log.warn("Error getting stats from stats-service: {}. Returning 0 views for all events.", e.getMessage());
         }
