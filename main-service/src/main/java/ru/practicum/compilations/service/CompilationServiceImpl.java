@@ -24,6 +24,7 @@ import ru.practicum.handler.exception.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -144,16 +145,14 @@ public class CompilationServiceImpl implements CompilationService {
             return views;
         }
 
-        Set<String> uris = events.stream()
-                .map(event -> "/events/" + event.getId())
-                .collect(Collectors.toSet());
+        Map<String, Long> eventUriAndIdMap = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toMap(id -> "/events/" + id, Function.identity()));
 
         try {
             List<ViewStats> stats = statClient.getStats(
                     ViewsStatsRequest.builder()
-                            .start(LocalDateTime.now().minusYears(1))
-                            .end(LocalDateTime.now())
-                            .uris(uris)
+                            .uris(eventUriAndIdMap.keySet())
                             .unique(true)
                             .build()
             );

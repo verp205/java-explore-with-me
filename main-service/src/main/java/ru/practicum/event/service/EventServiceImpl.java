@@ -289,32 +289,14 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Long> getEventViews(List<Event> events) {
-
-        if (events == null || events.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
         Map<String, Long> eventUriAndIdMap = events.stream()
                 .map(Event::getId)
-                .collect(Collectors.toMap(
-                        id -> "/events/" + id,
-                        Function.identity()
-                ));
-
-        LocalDateTime start = events.stream()
-                .map(Event::getPublishedOn)
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo)
-                .orElse(LocalDateTime.now().minusYears(1));
-
-        LocalDateTime end = LocalDateTime.now();
+                .collect(Collectors.toMap(id -> "/events/" + id, Function.identity()));
 
         List<ViewStats> stats = statClient.getStats(
                 ViewsStatsRequest.builder()
                         .uris(eventUriAndIdMap.keySet())
                         .unique(true)
-                        .start(start)
-                        .end(end)
                         .build()
         );
 
