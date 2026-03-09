@@ -11,7 +11,6 @@ import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.dto.PageParams;
 import ru.practicum.event.dto.PublicEventParams;
-import ru.practicum.event.mapper.EventMapper;
 import ru.practicum.event.service.EventService;
 import ru.practicum.handler.exception.BadRequestException;
 
