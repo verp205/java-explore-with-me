@@ -319,7 +319,6 @@ public class EventServiceImpl implements EventService {
         );
 
         return stats.stream()
-                .filter(stat -> eventUriAndIdMap.containsKey(stat.getUri()))
                 .collect(Collectors.toMap(
                         stat -> eventUriAndIdMap.get(stat.getUri()),
                         ViewStats::getHits

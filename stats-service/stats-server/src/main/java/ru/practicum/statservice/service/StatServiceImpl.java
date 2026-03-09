@@ -40,6 +40,10 @@ public class StatServiceImpl implements StatService {
             LocalDateTime startTime = LocalDateTime.parse(start, FORMATTER);
             LocalDateTime endTime = LocalDateTime.parse(end, FORMATTER);
 
+            if (endTime.isBefore(startTime)) {
+                throw new IllegalArgumentException("End date must be after start date");
+            }
+
             if (uris == null || uris.isEmpty()) {
                 if (unique) {
                     return repository.findUniqueHitsAll(startTime, endTime);

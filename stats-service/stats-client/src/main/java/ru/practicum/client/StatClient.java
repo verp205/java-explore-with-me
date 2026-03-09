@@ -58,8 +58,8 @@ public class StatClient {
             return restClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/stats")
-                            .queryParam("start", request.getStart())
-                            .queryParam("end", request.getEnd())
+                            .queryParam("start", request.getStart().format(FORMATTER))
+                            .queryParam("end", request.getEnd().format(FORMATTER))
                             .queryParam("uris", request.getUris())
                             .queryParam("unique", request.isUnique())
                             .build()
