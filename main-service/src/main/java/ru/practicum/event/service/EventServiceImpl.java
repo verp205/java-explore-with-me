@@ -289,38 +289,40 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Long> getEventViews(List<Event> events) {
-
         if (events == null || events.isEmpty()) {
             return Map.of();
         }
 
-        Map<String, Long> eventUriAndIdMap = events.stream()
-                .map(Event::getId)
+        Map<String, Long> uriToEventId = events.stream()
                 .collect(Collectors.toMap(
-                        id -> "/events/" + id,
-                        Function.identity()
+                        e -> "/events/" + e.getId(),
+                        Event::getId
                 ));
+
+        if (uriToEventId.isEmpty()) {
+            return Map.of();
+        }
 
         LocalDateTime start = LocalDateTime.of(2000, 1, 1, 0, 0);
         LocalDateTime end = LocalDateTime.now();
 
-        List<ViewStatsDto> stats = statClient.getStats(
-                ViewsStatsRequest.builder()
-                        .uris(eventUriAndIdMap.keySet())
-                        .unique(true)
-                        .start(start)
-                        .end(end)
-                        .build()
-        );
+        ViewsStatsRequest statsRequest = ViewsStatsRequest.builder()
+                .start(start)
+                .end(end)
+                .uris(new HashSet<>(uriToEventId.keySet()))
+                .unique(true)
+                .build();
+
+        List<ViewStatsDto> stats = statClient.getStats(statsRequest);
 
         if (stats == null || stats.isEmpty()) {
             return Map.of();
         }
 
         return stats.stream()
-                .filter(stat -> eventUriAndIdMap.containsKey(stat.getUri()))
+                .filter(s -> uriToEventId.containsKey(s.getUri()))
                 .collect(Collectors.toMap(
-                        stat -> eventUriAndIdMap.get(stat.getUri()),
+                        s -> uriToEventId.get(s.getUri()),
                         ViewStatsDto::getHits
                 ));
     }
