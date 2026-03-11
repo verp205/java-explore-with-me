@@ -68,7 +68,8 @@ public class StatClient {
                     .body(new ParameterizedTypeReference<>() {});
 
         } catch (Exception e) {
-            throw new RuntimeException("Error while getting stats", e);
+            System.out.println("Stats service unavailable: " + e.getMessage());
+            return List.of();
         }
     }
 }
