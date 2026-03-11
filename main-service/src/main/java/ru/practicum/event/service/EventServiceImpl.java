@@ -290,7 +290,7 @@ public class EventServiceImpl implements EventService {
 
     private Map<Long, Long> getEventViews(List<Event> events) {
 
-        if (events.isEmpty()) {
+        if (events == null || events.isEmpty()) {
             return Map.of();
         }
 
@@ -301,12 +301,7 @@ public class EventServiceImpl implements EventService {
                         Function.identity()
                 ));
 
-        LocalDateTime start = events.stream()
-                .map(Event::getPublishedOn)
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo)
-                .orElse(LocalDateTime.of(2000,1,1,0,0));
-
+        LocalDateTime start = LocalDateTime.of(2000, 1, 1, 0, 0);
         LocalDateTime end = LocalDateTime.now();
 
         List<ViewStatsDto> stats = statClient.getStats(
