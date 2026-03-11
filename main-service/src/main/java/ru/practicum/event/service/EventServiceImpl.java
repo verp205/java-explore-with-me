@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.client.StatClient;
-import ru.practicum.dto.ViewStats;
+import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.dto.ViewsStatsRequest;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.mapper.EventMapper;
@@ -289,21 +289,44 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Long> getEventViews(List<Event> events) {
+
+        if (events.isEmpty()) {
+            return Map.of();
+        }
+
         Map<String, Long> eventUriAndIdMap = events.stream()
                 .map(Event::getId)
-                .collect(Collectors.toMap(id -> "/events/" + id, Function.identity()));
+                .collect(Collectors.toMap(
+                        id -> "/events/" + id,
+                        Function.identity()
+                ));
 
-        List<ViewStats> stats = statClient.getStats(
+        LocalDateTime start = events.stream()
+                .map(Event::getPublishedOn)
+                .filter(Objects::nonNull)
+                .min(LocalDateTime::compareTo)
+                .orElse(LocalDateTime.of(2000,1,1,0,0));
+
+        LocalDateTime end = LocalDateTime.now();
+
+        List<ViewStatsDto> stats = statClient.getStats(
                 ViewsStatsRequest.builder()
                         .uris(eventUriAndIdMap.keySet())
                         .unique(true)
+                        .start(start)
+                        .end(end)
                         .build()
         );
 
+        if (stats == null || stats.isEmpty()) {
+            return Map.of();
+        }
+
         return stats.stream()
+                .filter(stat -> eventUriAndIdMap.containsKey(stat.getUri()))
                 .collect(Collectors.toMap(
                         stat -> eventUriAndIdMap.get(stat.getUri()),
-                        ViewStats::getHits
+                        ViewStatsDto::getHits
                 ));
     }
 

@@ -14,7 +14,7 @@ import ru.practicum.compilations.dto.UpdateCompilationRequest;
 import ru.practicum.compilations.dto.CompilationMapper;
 import ru.practicum.compilations.model.Compilation;
 import ru.practicum.compilations.repository.CompilationRepository;
-import ru.practicum.dto.ViewStats;
+import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.dto.ViewsStatsRequest;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.mapper.EventMapper;
@@ -124,7 +124,7 @@ public class CompilationServiceImpl implements CompilationService {
         List<Event> events = new ArrayList<>(compilation.getEvents());
 
         Map<Long, Long> viewsMap = getEventsViews(events);
-        Map<Long, Long> confirmedRequestsMap = getConfirmedRequests(events); // Здесь нужно будет реализовать реальный подсчет
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequests(events);
 
         List<EventShortDto> eventShortDtos = events.stream()
                 .map(event -> eventMapper.toEventShortDto(
@@ -149,14 +149,14 @@ public class CompilationServiceImpl implements CompilationService {
                 .collect(Collectors.toMap(id -> "/events/" + id, Function.identity()));
 
         try {
-            List<ViewStats> stats = statClient.getStats(
+            List<ViewStatsDto> stats = statClient.getStats(
                     ViewsStatsRequest.builder()
                             .uris(eventUriAndIdMap.keySet())
                             .unique(true)
                             .build()
             );
 
-            for (ViewStats stat : stats) {
+            for (ViewStatsDto stat : stats) {
                 String uri = stat.getUri();
                 Long eventId = Long.parseLong(uri.substring(uri.lastIndexOf("/") + 1));
                 views.put(eventId, stat.getHits());

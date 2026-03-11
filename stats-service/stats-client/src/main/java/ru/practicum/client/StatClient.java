@@ -6,7 +6,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import ru.practicum.dto.EndpointHitDto;
-import ru.practicum.dto.ViewStats;
+import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.dto.ViewsStatsRequest;
 
 import java.time.LocalDateTime;
@@ -48,11 +48,11 @@ public class StatClient {
                 throw new RuntimeException("Failed to save hit: " + response.getStatusCode());
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error while saving hit to stats service", e);
+            System.out.println("Stats service unavailable");
         }
     }
 
-    public List<ViewStats> getStats(ViewsStatsRequest request) {
+    public List<ViewStatsDto> getStats(ViewsStatsRequest request) {
 
         try {
             return restClient.get()
@@ -65,7 +65,7 @@ public class StatClient {
                             .build()
                     )
                     .retrieve()
-                    .body(new ParameterizedTypeReference<List<ViewStats>>() {});
+                    .body(new ParameterizedTypeReference<>() {});
 
         } catch (Exception e) {
             throw new RuntimeException("Error while getting stats", e);
