@@ -27,8 +27,13 @@ public class StatClient {
     }
 
     public void saveHit(HttpServletRequest request) {
+
         String uri = request.getRequestURI();
-        String ip = request.getRemoteAddr();
+
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isBlank()) {
+            ip = request.getRemoteAddr();
+        }
 
         EndpointHitDto hitDto = EndpointHitDto.builder()
                 .app(serviceName)
@@ -47,6 +52,7 @@ public class StatClient {
             if (response.getStatusCode().isError()) {
                 throw new RuntimeException("Failed to save hit: " + response.getStatusCode());
             }
+
         } catch (Exception e) {
             System.out.println("Stats service unavailable");
         }
