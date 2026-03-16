@@ -8,6 +8,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.comments.dto.CommentDto;
+import ru.practicum.comments.dto.NewCommentDto;
+import ru.practicum.comments.service.CommentService;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.service.EventService;
 import ru.practicum.request.dto.EventRequestStatusUpdateResult;
@@ -21,6 +24,7 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping("/users/{userId}")
 public class PrivateUserEventController {
+    private final CommentService commentService;
     private final EventService eventService;
     private final RequestService requestService;
 
@@ -82,5 +86,15 @@ public class PrivateUserEventController {
 
         return ResponseEntity.ok()
                 .body(requestService.patchEventRequestsStatus(userId, eventId, updateDto));
+    }
+
+    @PostMapping("/events/{eventId}/comments")
+    public ResponseEntity<CommentDto> addComment(
+            @PathVariable Long userId,
+            @PathVariable Long eventId,
+            @Valid @RequestBody NewCommentDto dto) {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(commentService.addComment(userId, eventId, dto));
     }
 }

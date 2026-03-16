@@ -21,7 +21,7 @@ import java.util.List;
 public class AdminEventController {
     private final EventService eventService;
 
-    @GetMapping
+    @GetMapping()
     public ResponseEntity<List<EventFullDto>> getEventsByAdminFilters(
             @RequestParam(required = false) List<Long> users,
             @RequestParam(required = false) List<EventState> states,
