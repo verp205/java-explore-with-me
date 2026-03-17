@@ -97,4 +97,25 @@ public class PrivateUserEventController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(commentService.addComment(userId, eventId, dto));
     }
+
+    // Получить все свои комментарии
+    @GetMapping("/comments")
+    public List<CommentDto> getUserComments(@PathVariable Long userId) {
+        return commentService.getUserComments(userId);
+    }
+
+    // Получить конкретный комментарий
+    @GetMapping("/comments/{commentId}")
+    public CommentDto getUserCommentById(@PathVariable Long userId,
+                                         @PathVariable Long commentId) {
+        return commentService.getUserCommentById(userId, commentId);
+    }
+
+    // Обновить комментарий
+    @PatchMapping("/comments/{commentId}")
+    public CommentDto updateComment(@PathVariable Long userId,
+                                    @PathVariable Long commentId,
+                                    @RequestBody @Valid NewCommentDto dto) {
+        return commentService.updateComment(userId, commentId, dto);
+    }
 }

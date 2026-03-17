@@ -55,6 +55,52 @@
       "response": []
     },
     {
+      "name": "Create Comment Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Comment created',()=>pm.expect(pm.response.code).to.eql(201));",
+              "const json=pm.response.json();",
+              "pm.expect(json.status).to.eql('PENDING');",
+              "pm.environment.set('commentId',json.id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n\"text\":\"Отличное событие!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}/events/{{eventId}}/comments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}",
+            "events",
+            "{{eventId}}",
+            "comments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Pending Comments",
       "event": [
         {
@@ -86,41 +132,6 @@
               "key": "status",
               "value": "PENDING"
             }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Approve Comment",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Comment approved',()=>pm.expect(pm.response.code).to.eql(200));",
-              "const json=pm.response.json();",
-              "pm.expect(json.status).to.eql('APPROVED');"
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "PATCH",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/admin/comments/{{commentId}}/approve",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "admin",
-            "comments",
-            "{{commentId}}",
-            "approve"
           ]
         }
       },
@@ -168,39 +179,6 @@
             "events",
             "{{eventId}}",
             "comments"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Reject Comment",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Reject works',()=>pm.expect(pm.response.code).to.eql(200));"
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "PATCH",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/admin/comments/{{commentId}}/reject",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "admin",
-            "comments",
-            "{{commentId}}",
-            "reject"
           ]
         }
       },
@@ -277,6 +255,115 @@
             "comments",
             "999999",
             "approve"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get an event with comments",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Event has comments field\", function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.have.property(\"comments\");",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/events/{{eventId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "events",
+            "{{eventId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get user comments",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}/comments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}",
+            "comments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Edit user Comment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status set to PENDING after update\", function () {",
+              "    pm.expect(pm.response.json().status).to.eql(\"PENDING\");",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"Обновлённый текст комментария\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}/comments/{{commentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "{{userId}}",
+            "comments",
+            "{{commentId}}"
           ]
         }
       },
@@ -499,6 +586,10 @@
     },
     {
       "key": "commentId",
+      "value": ""
+    },
+    {
+      "key": "commentIdForReject",
       "value": ""
     }
   ]
