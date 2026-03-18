@@ -13,6 +13,7 @@ import ru.practicum.user.model.User;
 
 @Mapper(componentModel = "spring")
 public interface EventMapper {
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "category", source = "category")
     @Mapping(target = "initiator", source = "user")
@@ -25,13 +26,21 @@ public interface EventMapper {
     @Mapping(target = "location", source = "event.location")
     @Mapping(target = "views", source = "views")
     @Mapping(target = "confirmedRequests", source = "confirmedRequests")
-    EventFullDto toEventFullDto(Event event, Long views, Long confirmedRequests);
+    @Mapping(target = "comments", source = "comments")
+    EventFullDto toEventFullDto(Event event,
+                                Long views,
+                                Long confirmedRequests,
+                                Long comments);
 
     @Mapping(target = "category", source = "event.category")
     @Mapping(target = "initiator", source = "event.initiator")
     @Mapping(target = "views", source = "views")
     @Mapping(target = "confirmedRequests", source = "confirmedRequests")
-    EventShortDto toEventShortDto(Event event, Long views, Long confirmedRequests);
+    @Mapping(target = "comments", source = "comments")
+    EventShortDto toEventShortDto(Event event,
+                                  Long views,
+                                  Long confirmedRequests,
+                                  Long comments);
 
     default LocationEntity map(Location location) {
         if (location == null) {

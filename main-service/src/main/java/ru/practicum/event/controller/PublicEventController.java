@@ -7,6 +7,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.StatClient;
+import ru.practicum.comments.dto.CommentDto;
+import ru.practicum.comments.service.CommentService;
 import ru.practicum.event.dto.EventFullDto;
 import ru.practicum.event.dto.EventShortDto;
 import ru.practicum.event.dto.PageParams;
@@ -22,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/events")
 public class PublicEventController {
+    private final CommentService commentService;
     private final EventService eventService;
     private final StatClient statClient;
 
@@ -63,5 +66,11 @@ public class PublicEventController {
         EventFullDto event = eventService.getEventById(id, request);
 
         return ResponseEntity.ok(event);
+    }
+
+    @GetMapping("/{eventId}/comments")
+    public ResponseEntity<List<CommentDto>> getComments(@PathVariable Long eventId) {
+        return ResponseEntity.ok()
+                .body(commentService.getEventComments(eventId));
     }
 }

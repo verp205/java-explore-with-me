@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.client.StatClient;
+import ru.practicum.comments.repository.CommentRepository;
 import ru.practicum.compilations.dto.CompilationDto;
 import ru.practicum.compilations.dto.CompilationSearchParam;
 import ru.practicum.compilations.dto.NewCompilationDto;
@@ -36,6 +37,7 @@ public class CompilationServiceImpl implements CompilationService {
     private final CompilationMapper compilationMapper;
     private final EventMapper eventMapper;
     private final StatClient statClient;
+    private final CommentRepository commentRepository;
 
     @Override
     @Transactional
@@ -125,12 +127,14 @@ public class CompilationServiceImpl implements CompilationService {
 
         Map<Long, Long> viewsMap = getEventsViews(events);
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequests(events);
+        Map<Long, Long> commentsMap = getEventsComments(events);
 
         List<EventShortDto> eventShortDtos = events.stream()
                 .map(event -> eventMapper.toEventShortDto(
                         event,
                         viewsMap.getOrDefault(event.getId(), 0L),
-                        confirmedRequestsMap.getOrDefault(event.getId(), 0L)
+                        confirmedRequestsMap.getOrDefault(event.getId(), 0L),
+                        commentsMap.getOrDefault(event.getId(), 0L)
                 ))
                 .collect(Collectors.toList());
 
@@ -167,6 +171,29 @@ public class CompilationServiceImpl implements CompilationService {
         }
 
         return views;
+    }
+
+    private Map<Long, Long> getEventsComments(List<Event> events) {
+        Map<Long, Long> result = new HashMap<>();
+
+        if (events.isEmpty()) {
+            return result;
+        }
+
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        List<Object[]> stats = commentRepository
+                .countApprovedCommentsByEventIds(eventIds);
+
+        for (Object[] row : stats) {
+            Long eventId = (Long) row[0];
+            Long count = (Long) row[1];
+            result.put(eventId, count);
+        }
+
+        return result;
     }
 
     private Map<Long, Long> getConfirmedRequests(List<Event> events) {
